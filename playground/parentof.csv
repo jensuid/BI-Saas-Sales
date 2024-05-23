@@ -1,8 +1,8 @@
-parent,child
-Alice,Carol
-Bob,Carol
-Carol,Dave
-Carol,George
-Dave,Mary
-Eve,Mary
-Mary,Frank
+parent ,child
+Alice  ,Carol
+Bob    ,Carol
+Carol  ,Dave
+Carol  ,George
+Dave   ,Mary
+Eve    ,Mary
+Mary   ,Frank
