@@ -59,72 +59,90 @@
 --------------------------------
 
 -- query weekly open_leads periodic
-with base_weekly as (
-select
-   distinct
-   leads_id,
-   step_id,
-   start_of_week,
-   case when date(ending_ts) >= date(start_of_week)
-        and date(starting_ts) <= date(end_of_week)
-        then 1 else 0 end as open
-from open_leads_psf
-),
-base_monthly as (
-select
-   distinct
-   leads_id,
-   step_id,
-   date(start_of_week,'start of month') month,
-   case when date(ending_ts,'start of month') >= date(start_of_week,'start of month')
-        and date(starting_ts,'start of month') <= date(start_of_week,'start of month')
-        then 1 else 0 end as open
-from open_leads_psf
-),
-total_monthly as (
-select
---    start_of_week,
-   strftime('%Y-%m',month) month,
+-- with base_weekly as (
+-- select
+--    distinct
+--    leads_id,
 --    step_id,
-   count(distinct leads_id) as total_leads,
-   count(case when step_id = 0 then leads_id  end)  as new_leads,
-   count(distinct leads_id) -
-    count(case when step_id = 0 then leads_id  end) as open_leads
-from base_monthly
-where open =  1
-group by 1
-order by 1
-),
------ weekly and monthly
-combined_open as (
-select 
-   leads_id,
-   step_id,
-   start_of_week,
-   date(start_of_week,'start of month') month,
-   starting_ts,
-   ending_ts,
-  -- open flag for weekly
-   case when date(ending_ts) >= date(start_of_week)
-        and date(starting_ts) <= date(end_of_week)
-        then 1 else 0 end as open_weekly,
+--    start_of_week,
+--    case when date(ending_ts) >= date(start_of_week)
+--         and date(starting_ts) <= date(end_of_week)
+--         then 1 else 0 end as open
+-- from open_leads_psf
+-- ),
+-- base_monthly as (
+-- select
+--    distinct
+--    leads_id,
+--    step_id,
+--    date(start_of_week,'start of month') month,
+--    case when date(ending_ts,'start of month') >= date(start_of_week,'start of month')
+--         and date(starting_ts,'start of month') <= date(start_of_week,'start of month')
+--         then 1 else 0 end as open
+-- from open_leads_psf
+-- ),
+-- total_monthly as (
+-- select
+-- --    start_of_week,
+--    strftime('%Y-%m',month) month,
+-- --    step_id,
+--    count(distinct leads_id) as total_leads,
+--    count(case when step_id = 0 then leads_id  end)  as new_leads,
+--    count(distinct leads_id) -
+--     count(case when step_id = 0 then leads_id  end) as open_leads
+-- from base_monthly
+-- where open =  1
+-- group by 1
+-- order by 1
+-- ),
+-- ----- weekly and monthly
+-- combined_open as (
+-- select 
+--    leads_id,
+--    step_id,
+--    start_of_week,
+--    date(start_of_week,'start of month') month,
+--    starting_ts,
+--    ending_ts,
+--   -- open flag for weekly
+--    case when date(ending_ts) >= date(start_of_week)
+--         and date(starting_ts) <= date(end_of_week)
+--         then 1 else 0 end as open_weekly,
 
-   -- open flag for monthly
-   case when date(ending_ts,'start of month') >= date(start_of_week,'start of month')
-        and date(starting_ts,'start of month') <= date(start_of_week,'start of month')
-        then 1 else 0 end as open_monthly
+--    -- open flag for monthly
+--    case when date(ending_ts,'start of month') >= date(start_of_week,'start of month')
+--         and date(starting_ts,'start of month') <= date(start_of_week,'start of month')
+--         then 1 else 0 end as open_monthly
     
-from open_leads_psf
-order by cast(leads_id as int),2,3
-),
-final_open_leads as (
-select
-   *
- from combined_open
- where cast(open_weekly as int) +
-       cast(open_monthly as int) != 0
-)
- select *
- from final_open_leads
+-- from open_leads_psf
+-- order by cast(leads_id as int),2,3
+-- ),
+-- final_open_leads as (
+-- select
+--    *
+--  from combined_open
+--  where cast(open_weekly as int) +
+--        cast(open_monthly as int) != 0
+-- )
+--  select *
+--  from final_open_leads
+-------------------------------------------
+-- query number of acc use discount
+   select
+      discount_flag,
+      count(distinct leads_id) no_of_leads,
+      100*count(distinct leads_id)/sum(count(distinct leads_id)) over() as percent_total
+   from (
+   select
+      distinct
+      leads_id,
+      case  when (sum(discount_percent) over (
+          partition by leads_id
+      )) = 0 then "no" else "used" end as discount_flag
+   from contracts_fact
+--    group by 1
+   order by cast(leads_id as int)
 
+  )
+   group by 1
 ;
