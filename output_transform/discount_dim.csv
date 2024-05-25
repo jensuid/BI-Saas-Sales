@@ -1,0 +1,4 @@
+discount_type_code,discount_type,discount_percent
+D0,No_Discount,0
+D1,2021_quarter_discount,10
+D2,2022_quarter_discount,20
