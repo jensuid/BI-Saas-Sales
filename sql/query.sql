@@ -128,21 +128,31 @@
 --  from final_open_leads
 -------------------------------------------
 -- query number of acc use discount
-   select
-      discount_flag,
-      count(distinct leads_id) no_of_leads,
-      100*count(distinct leads_id)/sum(count(distinct leads_id)) over() as percent_total
-   from (
-   select
-      distinct
-      leads_id,
-      case  when (sum(discount_percent) over (
-          partition by leads_id
-      )) = 0 then "no" else "used" end as discount_flag
-   from contracts_fact
---    group by 1
-   order by cast(leads_id as int)
+--    select
+--       discount_flag,
+--       count(distinct leads_id) no_of_leads,
+--       100*count(distinct leads_id)/sum(count(distinct leads_id)) over() as percent_total
+--    from (
+--    select
+--       distinct
+--       leads_id,
+--       case  when (sum(discount_percent) over (
+--           partition by leads_id
+--       )) = 0 then "no" else "used" end as discount_flag
+--    from contracts_fact
+-- --    group by 1
+--    order by cast(leads_id as int)
 
-  )
-   group by 1
+--   )
+--    group by 1
+
+-------------------------------------------
+-- based on acc funnel / pipeline
+select
+  date(starting_ts,'start of month') as month,
+  leads_id
+--   count(distinct leads_id) total_leads
+from pipeline_acf
+where date(starting_ts,'start of month') < '2021-02-01'
+order by date(starting_ts,'start of month'),2
 ;

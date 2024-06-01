@@ -55,5 +55,5 @@ on d.contract_id = c.contract_id
 )
  select *
  from final_discounts_fact
--- limit 5
+-- .sclimit 5
 ;
